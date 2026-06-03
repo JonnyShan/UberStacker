@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<title>Pack the Bag — Uber Eats</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Uber Move is proprietary; Inter is the standard open stand-in and is used as the fallback. -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+  :root {
+    --green: #06C167;
+    --green-dark: #04903e;
+    --bag: #c98a4a;
+    --bag-dark: #a56c34;
+    --ink: #142328;
+  }
+  html, body {
+    width: 100%; height: 100%; overflow: hidden;
+    background: #000;
+    font-family: "Uber Move", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    color: #fff;
+    touch-action: none;
+  }
+  #app {
+    position: fixed; inset: 0;
+    display: flex; flex-direction: column;
+    max-width: 480px; margin: 0 auto;
+    padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+    background: radial-gradient(120% 80% at 50% 0%, #16110b 0%, #000 70%);
+  }
+
+  /* ---------- HUD ---------- */
+  #hud {
+    flex: 0 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; padding: 10px 14px 8px;
+  }
+  .brand { display: flex; align-items: center; gap: 7px; }
+  .brand { flex-direction: column; align-items: flex-start; gap: 1px; }
+  .brand .logo { font-weight: 800; font-size: 19px; letter-spacing: -.4px; line-height: 1; }
+  .brand .logo .u { color: #fff; }
+  .brand .logo .e { color: var(--green); }
+  .brand .sub { font-size: 10px; opacity: .55; font-weight: 600; letter-spacing: .6px; text-transform: uppercase; }
+  .stats { display: flex; gap: 14px; align-items: center; }
+  .stat { text-align: center; line-height: 1.05; }
+  .stat .k { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; opacity: .55; font-weight: 700; }
+  .stat .v { font-size: 19px; font-weight: 800; }
+  .stat .v.green { color: var(--green); }
+  #nextWrap { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  #nextWrap .k { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; opacity: .55; font-weight: 700; }
+  #next { background: rgba(255,255,255,.05); border-radius: 8px; }
+  #muteBtn {
+    background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.18);
+    color: #fff; border-radius: 9px; width: 38px; height: 38px; font-size: 17px; cursor: pointer;
+  }
+
+  /* ---------- Playfield ---------- */
+  #playfield {
+    flex: 1 1 auto; position: relative;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 0; padding: 4px 0;
+  }
+  #board {
+    border-radius: 14px;
+    box-shadow: 0 12px 34px rgba(0,0,0,.6), inset 0 0 0 3px var(--bag-dark);
+    background: var(--bag);
+  }
+  .toast {
+    position: absolute; top: 12%; left: 50%; transform: translateX(-50%) translateY(-6px);
+    background: var(--green); color: #000; font-weight: 900; font-size: 15px;
+    padding: 7px 16px; border-radius: 999px; opacity: 0; pointer-events: none;
+    box-shadow: 0 6px 18px rgba(0,0,0,.5); white-space: nowrap;
+    transition: opacity .18s, transform .18s;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ---------- Touch pad ---------- */
+  #pad {
+    flex: 0 0 auto;
+    display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px;
+    padding: 10px 14px 16px;
+  }
+  .btn {
+    -webkit-appearance: none; appearance: none;
+    background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.16);
+    color: #fff; border-radius: 14px; height: 58px; font-size: 26px; font-weight: 800;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: background .08s, transform .08s;
+  }
+  .btn:active { background: var(--green); color: #000; transform: scale(.95); }
+  .btn.drop:active { background: #fff; }
+
+  /* ---------- Overlays ---------- */
+  .overlay {
+    position: absolute; inset: 0; z-index: 30;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 16px; text-align: center; padding: 28px;
+    background: rgba(0,0,0,.86); backdrop-filter: blur(4px);
+  }
+  .overlay.hidden { display: none; }
+  .overlay h1 { font-size: 30px; font-weight: 900; line-height: 1.1; }
+  .overlay h1 .e { color: var(--green); }
+  .overlay p { font-size: 14px; opacity: .8; line-height: 1.55; max-width: 320px; }
+  .overlay .cta {
+    margin-top: 6px; background: var(--green); color: #000; border: none;
+    border-radius: 12px; padding: 15px 40px; font-size: 18px; font-weight: 900; cursor: pointer;
+    box-shadow: 0 8px 22px rgba(6,193,103,.4);
+  }
+  .overlay .cta:disabled { opacity: .5; cursor: default; box-shadow: none; }
+  .overlay .cta:active:not(:disabled) { transform: scale(.97); }
+  .keys { font-size: 12px; opacity: .55; line-height: 1.8; }
+  .keys b { color: #fff; opacity: .9; }
+  #stars { font-size: 46px; letter-spacing: 6px; }
+  .grade { font-size: 16px; font-weight: 800; }
+  .winrows { display: flex; gap: 26px; }
+  .winrows .col .k { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; opacity: .55; font-weight: 700; }
+  .winrows .col .v { font-size: 28px; font-weight: 900; }
+  .winrows .col .v.green { color: var(--green); }
+  .best { font-size: 12px; opacity: .6; }
+  .lb { width: 100%; max-width: 320px; }
+  .lbTitle { font-size: 11px; font-weight: 800; letter-spacing: 1.5px; opacity: .65; text-transform: uppercase; margin-bottom: 7px; }
+  .lb ol { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+  .lb li { display: flex; align-items: center; gap: 10px; font-size: 14px; background: rgba(255,255,255,.06); padding: 8px 12px; border-radius: 9px; }
+  .lb li .rank { opacity: .55; width: 16px; font-weight: 800; }
+  .lb li .nm { flex: 1; text-align: left; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lb li .nm small { opacity: .5; font-weight: 600; font-size: 11px; margin-left: 7px; }
+  .lb li .sc { font-weight: 900; color: var(--green); }
+  .lb li.me { background: rgba(6,193,103,.22); outline: 1px solid var(--green); }
+  .nameEntry { display: flex; gap: 8px; align-items: center; justify-content: center; margin-top: 11px; }
+  .nameEntry.hidden { display: none; }
+  .nameEntry input { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.25); color: #fff; border-radius: 8px; padding: 9px 11px; font-size: 15px; width: 150px; }
+  .nameEntry button { background: var(--green); color: #000; border: none; border-radius: 8px; padding: 9px 16px; font-weight: 800; cursor: pointer; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="hud">
+    <div class="brand">
+      <span class="logo"><span class="u">Uber</span> <span class="e">Eats</span></span>
+      <span class="sub">Pack the Bag</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="k">Score</div><div class="v" id="score">0</div></div>
+      <div class="stat"><div class="k">Bags</div><div class="v green" id="bags">0</div></div>
+      <div id="nextWrap"><div class="k">Next</div><canvas id="next" width="60" height="60"></canvas></div>
+      <button id="muteBtn" title="Sound">🔊</button>
+    </div>
+  </div>
+
+  <div id="playfield">
+    <canvas id="board"></canvas>
+    <div class="toast" id="toast">Bag packed!</div>
+  </div>
+
+  <div id="pad">
+    <button class="btn" id="bLeft" aria-label="Left">◀</button>
+    <button class="btn" id="bRot" aria-label="Rotate">⟳</button>
+    <button class="btn" id="bRight" aria-label="Right">▶</button>
+    <button class="btn drop" id="bDrop" aria-label="Drop">⬇</button>
+  </div>
+
+  <!-- Start -->
+  <div class="overlay" id="startOv">
+    <h1>Pack the <span class="e">Bag</span> 🛍️</h1>
+    <p>Stack the food into the bag as tightly as you can. Rows <b>don't clear</b> — fill clean, no gaps, all the way to the top.</p>
+    <div class="keys">
+      <b>← →</b> move &nbsp;·&nbsp; <b>↑</b> rotate &nbsp;·&nbsp; <b>↓</b> soft drop &nbsp;·&nbsp; <b>space</b> hard drop<br/>
+      on phone use the buttons below
+    </div>
+    <div class="lb">
+      <div class="lbTitle">🏆 Top 5</div>
+      <ol id="lbListStart"></ol>
+    </div>
+    <button class="cta" id="startBtn" disabled>Loading…</button>
+  </div>
+
+  <!-- Win -->
+  <div class="overlay hidden" id="winOv">
+    <h1>Order <span class="e">delivered!</span></h1>
+    <div id="stars">★★★</div>
+    <div class="grade" id="grade">Perfect pack</div>
+    <div class="winrows">
+      <div class="col"><div class="k">Efficiency</div><div class="v green" id="wEff">0%</div></div>
+      <div class="col"><div class="k">Bags</div><div class="v" id="wBags">0</div></div>
+      <div class="col"><div class="k">Score</div><div class="v" id="wScore">0</div></div>
+    </div>
+    <div class="lb">
+      <div class="lbTitle">🏆 Top 5</div>
+      <ol id="lbList"></ol>
+      <div class="nameEntry hidden" id="nameEntry">
+        <input id="nameInput" maxlength="12" placeholder="Your name" />
+        <button id="saveScore">Save</button>
+      </div>
+    </div>
+    <button class="cta" id="againBtn">Pack another</button>
+  </div>
+
+  <!-- Pause -->
+  <div class="overlay hidden" id="pauseOv">
+    <h1>Paused</h1>
+    <button class="cta" id="resumeBtn">Resume</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+(function () {
+  const COLS = 8, ROWS = 16;
+  const FALL_MS = 750;
+
+  // ---------- Pieces: tetromino-style food shapes wired to the sliced sprite art ----------
+  // matrix = collision silhouette; the whole sprite image is drawn over the piece bbox.
+  const PIECES = {
+    I: { sprite: "sub",       cells: [[1,1,1,1]] },
+    O: { sprite: "ubereats",  cells: [[1,1],[1,1]] },
+    L: { sprite: "banana",    cells: [[1,0],[1,0],[1,1]] },
+    S: { sprite: "eggs",      cells: [[1,0],[1,1],[0,1]] },
+    T: { sprite: "groceries", cells: [[1,1,1],[0,1,0]] }
+  };
+  const KEYS = Object.keys(PIECES);
+  const SPRITE_SRC = {
+    sub: "assets/sub.png",
+    ubereats: "assets/ubereats.png",
+    banana: "assets/banana.png",
+    eggs: "assets/eggs.png",
+    groceries: "assets/groceries.png"
+  };
+  const SPRITES = {}; // key -> { rots: [canvas x4] }  (rots[r] = image rotated r*90° CW)
+
+  function loadImage(src) {
+    return new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(src); i.src = src; });
+  }
+  function makeRotations(img) {
+    const rots = [];
+    for (let r = 0; r < 4; r++) {
+      const swap = (r % 2) === 1;
+      const cw = swap ? img.height : img.width;
+      const ch = swap ? img.width : img.height;
+      const c = document.createElement("canvas");
+      c.width = cw; c.height = ch;
+      const x = c.getContext("2d");
+      x.translate(cw / 2, ch / 2);
+      x.rotate(r * Math.PI / 2);
+      x.drawImage(img, -img.width / 2, -img.height / 2);
+      rots.push(c);
+    }
+    return rots;
+  }
+  async function loadSprites() {
+    for (const key in SPRITE_SRC) {
+      const img = await loadImage(SPRITE_SRC[key]);
+      SPRITES[key] = { rots: makeRotations(img) };
+    }
+  }
+
+  function rotateMatrix(m) { // 90° clockwise
+    const h = m.length, w = m[0].length;
+    const out = Array.from({ length: w }, () => new Array(h).fill(0));
+    for (let y = 0; y < h; y++)
+      for (let x = 0; x < w; x++)
+        out[x][h - 1 - y] = m[y][x];
+    return out;
+  }
+
+  // ---------- Board ----------
+  let grid;        // grid[y][x] = pieceKey or null (collision + row logic)
+  let placed = []; // locked pieces, drawn as whole sprites: {key, cells, x, y, rot}
+  function newGrid() { return Array.from({ length: ROWS }, () => new Array(COLS).fill(null)); }
+
+  function collides(cells, px, py) {
+    for (let y = 0; y < cells.length; y++)
+      for (let x = 0; x < cells[y].length; x++) {
+        if (!cells[y][x]) continue;
+        const gx = px + x, gy = py + y;
+        if (gx < 0 || gx >= COLS || gy >= ROWS) return true;
+        if (gy >= 0 && grid[gy][gx]) return true;
+      }
+    return false;
+  }
+  function isRowFull(y) { return grid[y].every(c => c); }
+  function stackTopRow() {
+    for (let y = 0; y < ROWS; y++)
+      for (let x = 0; x < COLS; x++)
+        if (grid[y][x]) return y;
+    return ROWS;
+  }
+  function countHoles() {
+    let holes = 0;
+    for (let x = 0; x < COLS; x++) {
+      let seen = false;
+      for (let y = 0; y < ROWS; y++) {
+        if (grid[y][x]) seen = true;
+        else if (seen) holes++;
+      }
+    }
+    return holes;
+  }
+
+  // ---------- Game state ----------
+  let cur, curX, curY, curRot, nextKey;
+  let score = 0, bags = 0;
+  let state = "start"; // start | playing | paused | won
+  let pendingScore = null, savedThisRound = false;
+  // juice
+  const particles = [], popups = [];
+  let shakeMag = 0, lockSquash = null, lastT = 0;
+  const packedRows = new Set();
+
+  function makePiece(key) {
+    return { key: key, sprite: PIECES[key].sprite, cells: PIECES[key].cells.map(r => r.slice()) };
+  }
+  let queue = [];
+  function shuffledBag() {
+    const a = KEYS.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+  function pullKey() { if (queue.length === 0) queue = shuffledBag(); return queue.shift(); }
+
+  function spawn() {
+    cur = makePiece(nextKey || pullKey());
+    curRot = 0;
+    nextKey = pullKey();
+    curX = Math.floor((COLS - cur.cells[0].length) / 2);
+    curY = 0;
+    drawNext();
+    if (collides(cur.cells, curX, curY)) { endRound(); return false; } // topped out
+    return true;
+  }
+
+  function move(dx) {
+    if (state !== "playing") return;
+    if (!collides(cur.cells, curX + dx, curY)) { curX += dx; sfx("move"); }
+  }
+  function rotate() {
+    if (state !== "playing") return;
+    const r = rotateMatrix(cur.cells);
+    for (const kick of [0, -1, 1, -2, 2]) {
+      if (!collides(r, curX + kick, curY)) { cur.cells = r; curX += kick; curRot = (curRot + 1) % 4; sfx("rot"); return; }
+    }
+  }
+  function softDrop() {
+    if (state !== "playing") return;
+    if (!collides(cur.cells, curX, curY + 1)) { curY++; score += 1; updateHud(); lastFall = perfNow(); }
+    else lock();
+  }
+  function hardDrop() {
+    if (state !== "playing") return;
+    let d = 0;
+    while (!collides(cur.cells, curX, curY + 1)) { curY++; d++; }
+    score += d * 2;
+    addShake(3 + Math.min(8, d * 0.7));
+    buzz(18);
+    lock();
+  }
+
+  function lock() {
+    // record for rendering (whole sprite)
+    placed.push({ key: cur.key, cells: cur.cells.map(r => r.slice()), x: curX, y: curY, rot: curRot });
+    lockSquash = { idx: placed.length - 1, t0: perfNow() };
+    // mark grid for collision + rows
+    for (let y = 0; y < cur.cells.length; y++)
+      for (let x = 0; x < cur.cells[y].length; x++)
+        if (cur.cells[y][x]) {
+          const gy = curY + y, gx = curX + x;
+          if (gy >= 0) grid[gy][gx] = cur.key;
+        }
+    score += 10;
+    sfx("lock");
+    buzz(12);
+
+    // newly completed rows glow + score — rows DO NOT clear
+    let newRows = 0;
+    const newRowYs = [];
+    for (let y = 0; y < ROWS; y++)
+      if (isRowFull(y) && !packedRows.has(y)) { packedRows.add(y); newRows++; newRowYs.push(y); }
+    if (newRows > 0) {
+      bags += newRows; score += newRows * 100;
+      flashToast(newRows > 1 ? newRows + " bags packed!" : "Bag packed!");
+      sfx("row");
+      buzz([0, 25, 35, 25]);
+      addShake(7 + newRows * 2);
+      newRowYs.forEach(y => spawnBurst(y));
+      const topY = Math.min.apply(null, newRowYs);
+      popups.push({ text: "+" + (newRows * 100), x: COLS * cell / 2, y: topY * cell + cell / 2 - cell * 0.3, life: 950, maxLife: 950 });
+    }
+    updateHud();
+
+    // win: food reaches the top of the bag
+    let topReached = false;
+    for (let x = 0; x < COLS; x++) if (grid[0][x] || grid[1][x]) topReached = true;
+    if (topReached) { endRound(); return; }
+
+    spawn();
+  }
+
+  // Packing density: of the space your stack occupies (full width × its height),
+  // how much is actually food. A no-skill spike wastes most of the width → ~0%.
+  // A solidly packed bag with no gaps → ~100%. PACK_FLOOR maps the worst real
+  // dumps to 0 so the 0–100 range tracks skill, not just raw fill.
+  const PACK_FLOOR = 0.25;
+  function efficiency() {
+    const top = stackTopRow();
+    const band = (ROWS - top) * COLS;     // width × height of the occupied region
+    if (band <= 0) return 0;
+    let filled = 0;
+    for (let y = top; y < ROWS; y++)
+      for (let x = 0; x < COLS; x++)
+        if (grid[y][x]) filled++;
+    const density = filled / band;        // 1.0 = packed solid, low = wasted space
+    return Math.max(0, Math.min(100, Math.round((density - PACK_FLOOR) / (1 - PACK_FLOOR) * 100)));
+  }
+  function gradeFor(eff) {
+    if (eff >= 85) return { stars: 3, label: "Perfect pack" };
+    if (eff >= 65) return { stars: 2, label: "Tidy delivery" };
+    if (eff >= 40) return { stars: 1, label: "Good enough" };
+    return { stars: 0, label: "Messy pack — try again" };
+  }
+
+  // ---------- Rendering ----------
+  const board = document.getElementById("board");
+  const bctx = board.getContext("2d");
+  let cell = 24, dpr = 1;
+
+  function fit() {
+    const pf = document.getElementById("playfield");
+    const availW = pf.clientWidth - 4;
+    const availH = pf.clientHeight - 8;
+    cell = Math.max(14, Math.floor(Math.min(availW / COLS, availH / ROWS)));
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    board.width = COLS * cell * dpr;
+    board.height = ROWS * cell * dpr;
+    board.style.width = (COLS * cell) + "px";
+    board.style.height = (ROWS * cell) + "px";
+    bctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    bctx.imageSmoothingQuality = "high";
+  }
+
+  // draw a piece's whole sprite over its cell bounding box (with optional land-squash)
+  function drawSprite(ctx, key, cells, gx, gy, rot, alpha, squashP) {
+    const spr = SPRITES[PIECES[key].sprite];
+    if (!spr) return;
+    const cols = cells[0].length, rows = cells.length;
+    const w = cols * cell, h = rows * cell, x = gx * cell, y = gy * cell;
+    ctx.save();
+    if (alpha != null) ctx.globalAlpha = alpha;
+    if (squashP) {
+      const e = Math.sin(squashP * Math.PI);   // 0 → 1 → 0 over the anim
+      const sy = 1 - 0.16 * e, sx = 1 + 0.16 * e;
+      ctx.translate(x + w / 2, y + h);          // anchor at bottom-centre
+      ctx.scale(sx, sy);
+      ctx.translate(-(x + w / 2), -(y + h));
+    }
+    ctx.drawImage(spr.rots[rot], x, y, w, h);
+    ctx.restore();
+  }
+
+  function ghostY() {
+    let y = curY;
+    while (!collides(cur.cells, curX, y + 1)) y++;
+    return y;
+  }
+
+  function render() {
+    const W = COLS * cell, H = ROWS * cell;
+    // bag background
+    bctx.clearRect(0, 0, W, H);
+    const g = bctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, "#d59658"); g.addColorStop(1, "#b87a3c");
+    bctx.fillStyle = g; bctx.fillRect(0, 0, W, H);
+    bctx.strokeStyle = "rgba(0,0,0,.07)"; bctx.lineWidth = 1;
+    for (let x = 1; x < COLS; x++) { bctx.beginPath(); bctx.moveTo(x*cell, 0); bctx.lineTo(x*cell, H); bctx.stroke(); }
+    for (let y = 1; y < ROWS; y++) { bctx.beginPath(); bctx.moveTo(0, y*cell); bctx.lineTo(W, y*cell); bctx.stroke(); }
+
+    // packed-row glow (rows stay; just highlighted)
+    packedRows.forEach(y => { bctx.fillStyle = "rgba(6,193,103,.20)"; bctx.fillRect(0, y*cell, W, cell); });
+
+    // locked pieces (whole sprites, with land-squash on the newest)
+    for (let i = 0; i < placed.length; i++) {
+      const p = placed[i];
+      let sq = 0;
+      if (lockSquash && lockSquash.idx === i) {
+        const el = lastT - lockSquash.t0;
+        if (el < 170) sq = el / 170; else lockSquash = null;
+      }
+      drawSprite(bctx, p.key, p.cells, p.x, p.y, p.rot, null, sq);
+    }
+
+    if (state === "playing" || state === "paused") {
+      // ghost outline at landing spot
+      const gy = ghostY();
+      bctx.save();
+      for (let y = 0; y < cur.cells.length; y++)
+        for (let x = 0; x < cur.cells[y].length; x++)
+          if (cur.cells[y][x]) {
+            const px = (curX + x) * cell, py = (gy + y) * cell;
+            bctx.fillStyle = "rgba(255,255,255,.14)";
+            bctx.fillRect(px + cell*0.08, py + cell*0.08, cell*0.84, cell*0.84);
+          }
+      bctx.restore();
+      // current piece
+      drawSprite(bctx, cur.key, cur.cells, curX, curY, curRot);
+    }
+    renderJuice();
+  }
+
+  // next preview
+  const nextCv = document.getElementById("next");
+  const nctx = nextCv.getContext("2d");
+  function drawNext() {
+    nctx.clearRect(0, 0, 60, 60);
+    if (!nextKey || !SPRITES[PIECES[nextKey].sprite]) return;
+    const def = PIECES[nextKey];
+    const cols = def.cells[0].length, rows = def.cells.length;
+    const box = 52, s = Math.min(box / cols, box / rows);
+    const w = cols * s, h = rows * s, ox = (60 - w) / 2, oy = (60 - h) / 2;
+    nctx.drawImage(SPRITES[def.sprite].rots[0], ox, oy, w, h);
+  }
+
+  // ---------- HUD ----------
+  const elScore = document.getElementById("score");
+  const elBags = document.getElementById("bags");
+  function updateHud() { elScore.textContent = score; elBags.textContent = bags; }
+
+  const toastEl = document.getElementById("toast");
+  let toastT = 0;
+  function flashToast(msg) {
+    toastEl.textContent = msg; toastEl.classList.add("show");
+    clearTimeout(toastT); toastT = setTimeout(() => toastEl.classList.remove("show"), 900);
+  }
+
+  // ---------- Sound ----------
+  let actx = null, muted = false;
+  function audio() { if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)(); return actx; }
+  function tone(freq, dur, type, when, vol) {
+    if (muted) return;
+    try {
+      const a = audio(), t = a.currentTime + (when || 0);
+      const o = a.createOscillator(), gn = a.createGain();
+      o.type = type || "triangle"; o.frequency.value = freq;
+      gn.gain.setValueAtTime(0.0001, t);
+      gn.gain.exponentialRampToValueAtTime(vol || 0.25, t + 0.01);
+      gn.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(gn).connect(a.destination);
+      o.start(t); o.stop(t + dur + 0.02);
+    } catch (e) {}
+  }
+  function sfx(kind) {
+    switch (kind) {
+      case "move": tone(320, 0.05, "square", 0, 0.10); break;
+      case "rot":  tone(680, 0.06, "square", 0, 0.14); break;
+      case "lock": tone(150, 0.12, "sawtooth", 0, 0.20); break;
+      case "row":  [523, 659, 784].forEach((f, i) => tone(f, 0.14, "triangle", i * 0.07, 0.26)); break;
+      case "win":  [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.22, "triangle", i * 0.12, 0.28)); break;
+    }
+  }
+  const muteBtn = document.getElementById("muteBtn");
+  muteBtn.addEventListener("click", () => {
+    muted = !muted; muteBtn.textContent = muted ? "🔇" : "🔊";
+    try { localStorage.setItem("ptb_muted", muted ? "1" : "0"); } catch (e) {}
+  });
+
+  // ---------- Leaderboard (top 5, localStorage) ----------
+  const LB_KEY = "ptb_lb";
+  function loadLB() { try { return JSON.parse(localStorage.getItem(LB_KEY)) || []; } catch (e) { return []; } }
+  function saveLB(a) { try { localStorage.setItem(LB_KEY, JSON.stringify(a)); } catch (e) {} }
+  function escapeHtml(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+  function renderLB(targetId, highlight) {
+    const ol = document.getElementById(targetId);
+    if (!ol) return;
+    const lb = loadLB();
+    ol.innerHTML = "";
+    if (lb.length === 0) {
+      ol.innerHTML = '<li><span class="nm" style="opacity:.5">No scores yet — be first!</span></li>';
+      return;
+    }
+    lb.forEach((e, i) => {
+      const li = document.createElement("li");
+      if (highlight === i) li.className = "me";
+      li.innerHTML = '<span class="rank">' + (i + 1) + '</span>' +
+        '<span class="nm">' + escapeHtml(e.name) + '<small>' + (e.eff != null ? e.eff + "%" : "") + '</small></span>' +
+        '<span class="sc">' + e.score + '</span>';
+      ol.appendChild(li);
+    });
+  }
+  function commitScore() {
+    if (savedThisRound || !pendingScore) return;
+    const name = ((document.getElementById("nameInput").value || "").trim() || "YOU").slice(0, 12);
+    const lb = loadLB();
+    const entry = { name: name, score: pendingScore.score, eff: pendingScore.eff };
+    lb.push(entry);
+    lb.sort((a, b) => (b.score - a.score) || (b.eff - a.eff));
+    if (lb.length > 5) lb.length = 5;
+    const idx = lb.indexOf(entry);
+    saveLB(lb);
+    savedThisRound = true;
+    document.getElementById("nameEntry").classList.add("hidden");
+    renderLB("lbList", idx);
+  }
+
+  // ---------- Round end ----------
+  function endRound() {
+    state = "won";
+    const eff = efficiency();
+    const g = gradeFor(eff);
+    document.getElementById("stars").textContent = g.stars > 0 ? "★".repeat(g.stars) + "☆".repeat(3 - g.stars) : "☆☆☆";
+    document.getElementById("grade").textContent = g.label;
+    document.getElementById("wEff").textContent = eff + "%";
+    document.getElementById("wBags").textContent = bags;
+    document.getElementById("wScore").textContent = score;
+    pendingScore = { score: score, eff: eff };
+    savedThisRound = false;
+    const lb = loadLB();
+    const qualifies = lb.length < 5 || score > lb[lb.length - 1].score;
+    document.getElementById("nameEntry").classList.toggle("hidden", !qualifies);
+    renderLB("lbList", -1);
+    if (qualifies) {
+      const ni = document.getElementById("nameInput");
+      ni.value = "";
+      setTimeout(() => { try { ni.focus(); } catch (e) {} }, 60);
+    }
+    document.getElementById("winOv").classList.remove("hidden");
+    sfx("win");
+    buzz([0, 40, 60, 40, 60, 80]);
+  }
+
+  // ---------- Juice (shake / particles / popups / haptics) ----------
+  function buzz(p) { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
+  function addShake(m) { shakeMag = Math.min(16, Math.max(shakeMag, m)); }
+  function spawnBurst(rowY) {
+    const cy = rowY * cell + cell / 2;
+    const colors = ["#06C167", "#ffd23f", "#ffffff", "#ff5e5b"];
+    for (let i = 0; i < 24; i++) {
+      const ang = Math.random() * Math.PI * 2;
+      const spd = 2 + Math.random() * 5;
+      particles.push({
+        x: Math.random() * COLS * cell, y: cy,
+        vx: Math.cos(ang) * spd, vy: -Math.abs(Math.sin(ang) * spd) - 2,
+        life: 650, maxLife: 650,
+        size: cell * 0.12 + Math.random() * cell * 0.12,
+        color: colors[i % colors.length], rot: Math.random() * Math.PI
+      });
+    }
+  }
+  function updateJuice(dt) {
+    const f = dt / 16;
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.x += p.vx * f; p.y += p.vy * f; p.vy += 0.55 * f; p.rot += 0.15 * f;
+      p.life -= dt;
+      if (p.life <= 0) particles.splice(i, 1);
+    }
+    for (let i = popups.length - 1; i >= 0; i--) {
+      popups[i].y -= 0.5 * f; popups[i].life -= dt;
+      if (popups[i].life <= 0) popups.splice(i, 1);
+    }
+    if (shakeMag > 0.3) {
+      const dx = (Math.random() * 2 - 1) * shakeMag, dy = (Math.random() * 2 - 1) * shakeMag;
+      board.style.transform = "translate(" + dx.toFixed(1) + "px," + dy.toFixed(1) + "px)";
+      shakeMag *= 0.86;
+    } else if (board.style.transform) {
+      board.style.transform = "";
+      shakeMag = 0;
+    }
+  }
+  function renderJuice() {
+    for (const p of particles) {
+      bctx.save();
+      bctx.globalAlpha = Math.max(0, p.life / p.maxLife);
+      bctx.translate(p.x, p.y); bctx.rotate(p.rot);
+      bctx.fillStyle = p.color;
+      bctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+      bctx.restore();
+    }
+    for (const u of popups) {
+      bctx.save();
+      bctx.globalAlpha = Math.max(0, Math.min(1, u.life / u.maxLife * 1.4));
+      bctx.font = "900 " + Math.round(cell * 0.95) + "px 'Uber Move','Inter',sans-serif";
+      bctx.textAlign = "center"; bctx.textBaseline = "middle";
+      bctx.lineWidth = Math.max(3, cell * 0.12); bctx.strokeStyle = "rgba(0,0,0,.6)";
+      bctx.strokeText(u.text, u.x, u.y);
+      bctx.fillStyle = "#06C167";
+      bctx.fillText(u.text, u.x, u.y);
+      bctx.restore();
+    }
+  }
+
+  // ---------- Loop ----------
+  let lastFall = 0, raf = 0;
+  function perfNow() { return (window.performance && performance.now) ? performance.now() : 0; }
+  function loop(t) {
+    const dt = lastT ? Math.min(50, t - lastT) : 16;
+    lastT = t;
+    if (state === "playing") {
+      if (t - lastFall >= FALL_MS) {
+        lastFall = t;
+        if (!collides(cur.cells, curX, curY + 1)) curY++;
+        else lock();
+      }
+    }
+    updateJuice(dt);
+    render();
+    raf = requestAnimationFrame(loop);
+  }
+
+  // ---------- Controls ----------
+  let ready = false;
+  function start() {
+    if (!ready) return;
+    grid = newGrid(); placed = []; queue = []; packedRows.clear();
+    score = 0; bags = 0; nextKey = null;
+    particles.length = 0; popups.length = 0; shakeMag = 0; lockSquash = null; board.style.transform = "";
+    updateHud();
+    document.getElementById("startOv").classList.add("hidden");
+    document.getElementById("winOv").classList.add("hidden");
+    document.getElementById("pauseOv").classList.add("hidden");
+    fit();
+    state = "playing";
+    spawn();
+    lastFall = perfNow();
+    try { audio().resume(); } catch (e) {}
+  }
+  function togglePause() {
+    if (state === "playing") { state = "paused"; document.getElementById("pauseOv").classList.remove("hidden"); }
+    else if (state === "paused") { state = "playing"; document.getElementById("pauseOv").classList.add("hidden"); lastFall = perfNow(); }
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (document.activeElement && document.activeElement.id === "nameInput") return;
+    if ((state === "start" || state === "won") && (e.key === "Enter" || e.key === " ")) { start(); e.preventDefault(); return; }
+    if (e.key === "p" || e.key === "P") { togglePause(); e.preventDefault(); return; }
+    if (state !== "playing") return;
+    switch (e.key) {
+      case "ArrowLeft": move(-1); e.preventDefault(); break;
+      case "ArrowRight": move(1); e.preventDefault(); break;
+      case "ArrowUp": case "x": case "X": rotate(); e.preventDefault(); break;
+      case "ArrowDown": softDrop(); e.preventDefault(); break;
+      case " ": hardDrop(); e.preventDefault(); break;
+    }
+  });
+
+  function holdBtn(id, fn, repeat) {
+    const el = document.getElementById(id);
+    let iv = 0;
+    const down = (e) => { e.preventDefault(); fn(); if (repeat) { clearInterval(iv); iv = setInterval(fn, 110); } };
+    const up = () => clearInterval(iv);
+    el.addEventListener("pointerdown", down);
+    el.addEventListener("pointerup", up);
+    el.addEventListener("pointerleave", up);
+    el.addEventListener("pointercancel", up);
+  }
+  holdBtn("bLeft", () => move(-1), true);
+  holdBtn("bRight", () => move(1), true);
+  holdBtn("bRot", () => rotate(), false);
+  holdBtn("bDrop", () => hardDrop(), false);
+
+  // tap board = rotate, swipe down = hard drop
+  let tsx = 0, tsy = 0, tmoved = false;
+  board.addEventListener("pointerdown", (e) => { tsx = e.clientX; tsy = e.clientY; tmoved = false; });
+  board.addEventListener("pointermove", (e) => { if (Math.abs(e.clientX - tsx) > 18 || Math.abs(e.clientY - tsy) > 18) tmoved = true; });
+  board.addEventListener("pointerup", (e) => {
+    if (state !== "playing") return;
+    const dx = e.clientX - tsx, dy = e.clientY - tsy;
+    if (dy > 40 && Math.abs(dy) > Math.abs(dx)) hardDrop();
+    else if (!tmoved) rotate();
+  });
+
+  document.getElementById("startBtn").addEventListener("click", start);
+  document.getElementById("againBtn").addEventListener("click", start);
+  document.getElementById("resumeBtn").addEventListener("click", togglePause);
+  document.getElementById("saveScore").addEventListener("click", commitScore);
+  document.getElementById("nameInput").addEventListener("keydown", (e) => {
+    e.stopPropagation();
+    if (e.key === "Enter") { commitScore(); e.preventDefault(); }
+  });
+  window.addEventListener("resize", fit);
+  window.addEventListener("orientationchange", () => setTimeout(fit, 200));
+  window.addEventListener("blur", () => { if (state === "playing") togglePause(); });
+
+  // ---------- Init ----------
+  try { muted = localStorage.getItem("ptb_muted") === "1"; muteBtn.textContent = muted ? "🔇" : "🔊"; } catch (e) {}
+  grid = newGrid();
+  fit();
+  render();
+  renderLB("lbListStart", -1);
+  raf = requestAnimationFrame(loop);
+
+  loadSprites().then(() => {
+    ready = true;
+    drawNext();
+    const sb = document.getElementById("startBtn");
+    sb.disabled = false; sb.textContent = "Start packing";
+  }).catch((src) => {
+    const sb = document.getElementById("startBtn");
+    sb.textContent = "Failed to load art";
+    console.error("sprite load failed:", src);
+  });
+})();
+</script>
+</body>
+</html>
