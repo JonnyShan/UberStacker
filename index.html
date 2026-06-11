@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-<title>Pack the Bag — Uber Eats</title>
+<title>Stack The Bag — Uber Eats</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <!-- Uber Move is proprietary; Inter is the standard open stand-in and is used as the fallback. -->
@@ -162,6 +162,8 @@
     margin: 0; max-width: 320px; font-size: 14px; font-weight: 800; line-height: 1.45; color: #fff;
   }
   #howOv .htIntro b { color: var(--green); }
+  #howOv .htName { margin: 0; font-size: 30px; font-weight: 900; letter-spacing: .3px; line-height: 1.05; }
+  #howOv .htName .e { color: var(--green); }
   #howOv .htTitle { font-size: 22px; font-weight: 900; letter-spacing: .5px; }
   #howOv .htTitle .e { color: var(--green); }
   #demoWrap { position: relative; border-radius: 14px; overflow: hidden; border: 2px solid rgba(6,193,103,.5); box-shadow: 0 10px 30px rgba(0,0,0,.5); }
@@ -194,7 +196,7 @@
 <div id="app">
   <div id="hud">
     <div class="brand">
-      <span class="logo">Pack the Bag</span>
+      <span class="logo">Stack The Bag</span>
     </div>
     <div class="stats">
       <div class="stat"><div class="k">Score</div><div class="v" id="score">000000</div></div>
@@ -236,6 +238,7 @@
 
   <!-- How to play (auto-playing demo) -->
   <div class="overlay hidden" id="howOv">
+    <h1 class="htName">Stack The <span class="e">Bag</span></h1>
     <p class="htIntro">Stack the perfect <b>Uber Eats</b> delivery bag to earn points! The more items you stack, the more points you earn!</p>
     <div class="htTitle">How to <span class="e">play</span></div>
     <div id="demoWrap">
