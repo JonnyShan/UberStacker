@@ -162,9 +162,7 @@
     margin: 0; max-width: 320px; font-size: 14px; font-weight: 800; line-height: 1.45; color: #fff;
   }
   #howOv .htIntro b { color: var(--green); }
-  #howOv .htName { margin: 0; font-size: 30px; font-weight: 900; letter-spacing: .3px; line-height: 1.05; }
-  #howOv .htName .e { color: var(--green); }
-  #howOv .htTitle { font-size: 22px; font-weight: 900; letter-spacing: .5px; }
+  #howOv .htTitle { font-size: 30px; font-weight: 900; letter-spacing: .5px; }
   #howOv .htTitle .e { color: var(--green); }
   #demoWrap { position: relative; border-radius: 14px; overflow: hidden; border: 2px solid rgba(6,193,103,.5); box-shadow: 0 10px 30px rgba(0,0,0,.5); }
   #demoCv { display: block; width: 184px; height: 276px; background: #0AA354; }
@@ -238,18 +236,12 @@
 
   <!-- How to play (auto-playing demo) -->
   <div class="overlay hidden" id="howOv">
-    <h1 class="htName">Stack The <span class="e">Bag</span></h1>
-    <p class="htIntro">Stack the perfect <b>Uber Eats</b> delivery bag to earn points! The more items you stack, the more points you earn!</p>
     <div class="htTitle">How to <span class="e">play</span></div>
     <div id="demoWrap">
       <canvas id="demoCv" width="216" height="324"></canvas>
       <div id="demoCap">Drop food into the bag</div>
     </div>
-    <div class="htLegend">
-      <div class="it"><div class="ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11 6 L11 18 L4 12 Z"/><path d="M13 6 L13 18 L20 12 Z"/></svg></div><div class="lb">Move</div></div>
-      <div class="it"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 5 22 11 16 11"/><polyline points="2 19 2 13 8 13"/><path d="M4.2 9.2A8 8 0 0 1 18 6.5L22 11 M2 13l4 4.5A8 8 0 0 0 19.8 14.8"/></svg></div><div class="lb">Rotate</div></div>
-      <div class="it"><div class="ic drop"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 8 L11 8 L7 15 Z"/><path d="M13 8 L21 8 L17 15 Z"/></svg></div><div class="lb">Drop</div></div>
-    </div>
+    <p class="htIntro">Stack the perfect <b>Uber Eats</b> delivery bag to earn points! The more items you stack, the more points you earn!</p>
     <p class="htHint">Slide &amp; rotate each item, then drop it. Pack <b>tight with no gaps</b> — the fuller the bag, the more points.</p>
     <div class="htActions">
       <button class="cta" id="howPlay" style="margin-top:0">Play ▶</button>
