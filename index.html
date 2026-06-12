@@ -182,6 +182,10 @@
   .htLegend .lb { font-size: 11px; font-weight: 700; opacity: .8; letter-spacing: .3px; }
   #howOv .htHint { margin: 0; font-size: 13px; opacity: .9; line-height: 1.5; max-width: 300px; }
   #howOv .htHint b { color: var(--green); opacity: 1; }
+  #howOv .htSteps { list-style: none; margin: 2px 0 0; padding: 0; max-width: 360px; display: flex; flex-direction: column; gap: 13px; text-align: left; }
+  #howOv .htSteps li { display: flex; gap: 11px; align-items: flex-start; font-size: 14px; font-weight: 800; line-height: 1.42; color: #fff; }
+  #howOv .htSteps .num { flex: 0 0 26px; width: 26px; height: 26px; border-radius: 50%; background: var(--green); color: #fff; font-size: 13px; font-weight: 900; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 3px rgba(6,193,103,.18); }
+  #howOv .htSteps b { color: var(--green); }
   #howOv .htActions { display: flex; gap: 12px; align-items: center; margin-top: 2px; }
   #howClose {
     background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.3);
@@ -241,8 +245,11 @@
       <canvas id="demoCv" width="216" height="324"></canvas>
       <div id="demoCap">Drop food into the bag</div>
     </div>
-    <p class="htIntro">Stack the perfect <b>Uber Eats</b> delivery bag to earn points! The more items you stack, the more points you earn!</p>
-    <p class="htHint">Slide &amp; rotate each item, then drop it. Pack <b>tight with no gaps</b> — the fuller the bag, the more points.</p>
+    <ol class="htSteps">
+      <li><span class="num">1</span><span>Stack the perfect <b>Uber Eats</b> delivery bag to earn points! The more items you stack, the more points you earn!</span></li>
+      <li><span class="num">2</span><span>Slide &amp; rotate each item, then drop it. Pack <b>tight with no gaps</b> — the fuller the bag, the more points.</span></li>
+      <li><span class="num">3</span><span>Fill it up = more points!</span></li>
+    </ol>
     <div class="htActions">
       <button class="cta" id="howPlay" style="margin-top:0">Play ▶</button>
     </div>
