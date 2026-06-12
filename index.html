@@ -16,8 +16,8 @@
   :root {
     --green: #06C167;
     --green-dark: #04903e;
-    --bag: #c98a4a;
-    --bag-dark: #a56c34;
+    --bag: #3E8B2C;
+    --bag-dark: #2E6B20;
     --ink: #142328;
   }
   html, body {
@@ -167,7 +167,7 @@
   #howOv .htTitle { font-size: 30px; font-weight: 900; letter-spacing: .5px; }
   #howOv .htTitle .e { color: var(--green); }
   #demoWrap { position: relative; border-radius: 14px; overflow: hidden; border: 2px solid rgba(6,193,103,.5); box-shadow: 0 10px 30px rgba(0,0,0,.5); }
-  #demoCv { display: block; width: 184px; height: 276px; background: #0AA354; }
+  #demoCv { display: block; width: 184px; height: 276px; background: #3E8B2C; }
   #demoCap {
     position: absolute; left: 0; right: 0; bottom: 0; padding: 18px 8px 8px;
     background: linear-gradient(transparent, rgba(0,0,0,.8)); color: #fff;
@@ -665,20 +665,45 @@
   }
   function drawBagField(ctx, W, H, cell, cols, rows) {
     ctx.clearRect(0, 0, W, H);
+    // bag body — grass-green paper-bag gradient (matches the Uber paper bag)
     const g = ctx.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, "#15BD69"); g.addColorStop(1, "#0AA354");   // Uber Green 400 (#0CB35F) playfield
+    g.addColorStop(0, "#48993A"); g.addColorStop(0.5, "#3E8B2C"); g.addColorStop(1, "#367E24");
     ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-    const sh = ctx.createLinearGradient(0, 0, 0, H * 0.22);   // soft top sheen
-    sh.addColorStop(0, "rgba(255,255,255,.10)"); sh.addColorStop(1, "rgba(255,255,255,0)");
-    ctx.fillStyle = sh; ctx.fillRect(0, 0, W, H * 0.22);
-    ctx.strokeStyle = "rgba(0,0,0,.06)"; ctx.lineWidth = 1;   // faint grid
+    // side gussets — darker toward the far edges for bag depth
+    const sideW = W * 0.075;
+    let lg = ctx.createLinearGradient(0, 0, sideW, 0);
+    lg.addColorStop(0, "rgba(0,0,0,.17)"); lg.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = lg; ctx.fillRect(0, 0, sideW, H);
+    let rg = ctx.createLinearGradient(W - sideW, 0, W, 0);
+    rg.addColorStop(0, "rgba(0,0,0,0)"); rg.addColorStop(1, "rgba(0,0,0,.17)");
+    ctx.fillStyle = rg; ctx.fillRect(W - sideW, 0, sideW, H);
+    // printed grid squares (faint dark + light for a paper feel)
+    ctx.strokeStyle = "rgba(0,0,0,.08)"; ctx.lineWidth = 1;
     for (let x = 1; x < cols; x++) { ctx.beginPath(); ctx.moveTo(x*cell, 0); ctx.lineTo(x*cell, H); ctx.stroke(); }
     for (let y = 1; y < rows; y++) { ctx.beginPath(); ctx.moveTo(0, y*cell); ctx.lineTo(W, y*cell); ctx.stroke(); }
-    const seamY = cell * 1.6;                                  // bag fold seam under handles
-    ctx.strokeStyle = "rgba(0,0,0,.10)"; ctx.lineWidth = Math.max(1, cell * 0.04);
-    ctx.beginPath(); ctx.moveTo(0, seamY); ctx.lineTo(W, seamY); ctx.stroke();
-    ctx.strokeStyle = "rgba(255,255,255,.07)";
-    ctx.beginPath(); ctx.moveTo(0, seamY + ctx.lineWidth); ctx.lineTo(W, seamY + ctx.lineWidth); ctx.stroke();
+    ctx.strokeStyle = "rgba(255,255,255,.05)";
+    for (let x = 1; x < cols; x++) { ctx.beginPath(); ctx.moveTo(x*cell + 1, 0); ctx.lineTo(x*cell + 1, H); ctx.stroke(); }
+    // top cuff — the folded-over bag rim the handles attach to
+    const cuffH = cell * 1.3;
+    const cg = ctx.createLinearGradient(0, 0, 0, cuffH);
+    cg.addColorStop(0, "#357C23"); cg.addColorStop(1, "#3E8B2C");
+    ctx.fillStyle = cg; ctx.fillRect(0, 0, W, cuffH);
+    ctx.strokeStyle = "rgba(255,255,255,.16)"; ctx.lineWidth = Math.max(1, cell * 0.03);
+    ctx.beginPath(); ctx.moveTo(0, cuffH); ctx.lineTo(W, cuffH); ctx.stroke();
+    ctx.strokeStyle = "rgba(0,0,0,.16)";
+    ctx.beginPath(); ctx.moveTo(0, cuffH + ctx.lineWidth); ctx.lineTo(W, cuffH + ctx.lineWidth); ctx.stroke();
+    // folded paper corners at the top
+    const f = cell * 1.05;
+    ctx.fillStyle = "rgba(0,0,0,.14)";
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(f, 0); ctx.lineTo(0, f); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(W, 0); ctx.lineTo(W - f, 0); ctx.lineTo(W, f); ctx.closePath(); ctx.fill();
+    // soft sheen across the top
+    const sh = ctx.createLinearGradient(0, 0, 0, H * 0.18);
+    sh.addColorStop(0, "rgba(255,255,255,.09)"); sh.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = sh; ctx.fillRect(0, 0, W, H * 0.18);
+    // stitched seam around the bag edge
+    ctx.strokeStyle = "rgba(0,0,0,.22)"; ctx.lineWidth = Math.max(1.5, cell * 0.05);
+    ctx.strokeRect(ctx.lineWidth / 2, ctx.lineWidth / 2, W - ctx.lineWidth, H - ctx.lineWidth);
     drawHandles(ctx, W, cell);
   }
 
