@@ -646,64 +646,70 @@
 
   // ---------- Green Uber-Eats-bag playfield (shared by game board + how-to demo) ----------
   function drawHandles(ctx, W, cell) {
-    const gy = cell * 1.05, xL = W * 0.32, xR = W * 0.68, r = Math.max(5, cell * 0.30);
+    const gy = cell * 1.15, xL = W * 0.34, xR = W * 0.66, r = Math.max(6, cell * 0.34);
+    const P0 = { x: xL, y: gy }, P3 = { x: xR, y: gy }, C1 = { x: xL, y: -cell * 0.55 }, C2 = { x: xR, y: -cell * 0.55 };
+    const bez = t => { const u = 1 - t; return {
+      x: u*u*u*P0.x + 3*u*u*t*C1.x + 3*u*t*t*C2.x + t*t*t*P3.x,
+      y: u*u*u*P0.y + 3*u*u*t*C1.y + 3*u*t*t*C2.y + t*t*t*P3.y }; };
     ctx.save(); ctx.lineCap = "round"; ctx.lineJoin = "round";
-    function arch(lw, col) {
-      ctx.beginPath(); ctx.moveTo(xL, gy);
-      ctx.bezierCurveTo(xL, -cell * 0.15, xR, -cell * 0.15, xR, gy);
-      ctx.lineWidth = lw; ctx.strokeStyle = col; ctx.stroke();
+    // rope body (dark edge + tan core)
+    ctx.beginPath(); ctx.moveTo(P0.x, P0.y); ctx.bezierCurveTo(C1.x, C1.y, C2.x, C2.y, P3.x, P3.y);
+    ctx.lineWidth = r * 1.5; ctx.strokeStyle = "#6b4d28"; ctx.stroke();
+    ctx.lineWidth = r * 1.12; ctx.strokeStyle = "#c79a5e"; ctx.stroke();
+    // braided twist strokes along the rope
+    const N = Math.max(16, Math.round(W / (cell * 0.42)));
+    for (let i = 0; i <= N; i++) {
+      const t = i / N, p = bez(t), p2 = bez(Math.min(1, t + 0.012));
+      const dx = p2.x - p.x, dy = p2.y - p.y, L = Math.hypot(dx, dy) || 1, nx = -dy / L, ny = dx / L;
+      const ww = r * 0.52, tw = r * 0.42;
+      ctx.lineWidth = Math.max(1, r * 0.2);
+      ctx.strokeStyle = (i % 2) ? "rgba(255,238,205,.5)" : "rgba(90,60,25,.5)";
+      ctx.beginPath();
+      ctx.moveTo(p.x - nx*ww - dx/L*tw, p.y - ny*ww - dy/L*tw);
+      ctx.lineTo(p.x + nx*ww + dx/L*tw, p.y + ny*ww + dy/L*tw);
+      ctx.stroke();
     }
-    arch(r * 1.06, "#7d5a2f"); arch(r * 0.74, "#c8a074"); arch(r * 0.24, "rgba(255,243,222,.55)"); // edge / rope / sheen
+    ctx.restore();
+    // black grommets the rope threads through
     function grommet(x) {
-      ctx.beginPath(); ctx.arc(x, gy, r * 0.92, 0, Math.PI * 2); ctx.fillStyle = "#39403a"; ctx.fill();
-      ctx.beginPath(); ctx.arc(x, gy, r * 0.5, 0, Math.PI * 2); ctx.fillStyle = "#23281f"; ctx.fill();
-      ctx.lineWidth = Math.max(1, r * 0.12); ctx.strokeStyle = "rgba(255,255,255,.22)";
-      ctx.beginPath(); ctx.arc(x, gy, r * 0.72, Math.PI * 1.05, Math.PI * 1.95); ctx.stroke();
+      ctx.beginPath(); ctx.arc(x, gy, r * 0.98, 0, Math.PI * 2); ctx.fillStyle = "#0c0c0c"; ctx.fill();
+      ctx.beginPath(); ctx.arc(x, gy, r * 0.5, 0, Math.PI * 2); ctx.fillStyle = "#000"; ctx.fill();
+      ctx.lineWidth = Math.max(1, r * 0.13); ctx.strokeStyle = "rgba(255,255,255,.28)";
+      ctx.beginPath(); ctx.arc(x, gy, r * 0.76, Math.PI * 1.05, Math.PI * 1.95); ctx.stroke();
     }
     grommet(xL); grommet(xR);
-    ctx.restore();
   }
   function drawBagField(ctx, W, H, cell, cols, rows) {
     ctx.clearRect(0, 0, W, H);
-    // bag body — grass-green paper-bag gradient (matches the Uber paper bag)
-    const g = ctx.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, "#48993A"); g.addColorStop(0.5, "#3E8B2C"); g.addColorStop(1, "#367E24");
-    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-    // side gussets — darker toward the far edges for bag depth
-    const sideW = W * 0.075;
-    let lg = ctx.createLinearGradient(0, 0, sideW, 0);
-    lg.addColorStop(0, "rgba(0,0,0,.17)"); lg.addColorStop(1, "rgba(0,0,0,0)");
-    ctx.fillStyle = lg; ctx.fillRect(0, 0, sideW, H);
-    let rg = ctx.createLinearGradient(W - sideW, 0, W, 0);
-    rg.addColorStop(0, "rgba(0,0,0,0)"); rg.addColorStop(1, "rgba(0,0,0,.17)");
-    ctx.fillStyle = rg; ctx.fillRect(W - sideW, 0, sideW, H);
-    // printed grid squares (faint dark + light for a paper feel)
-    ctx.strokeStyle = "rgba(0,0,0,.08)"; ctx.lineWidth = 1;
-    for (let x = 1; x < cols; x++) { ctx.beginPath(); ctx.moveTo(x*cell, 0); ctx.lineTo(x*cell, H); ctx.stroke(); }
-    for (let y = 1; y < rows; y++) { ctx.beginPath(); ctx.moveTo(0, y*cell); ctx.lineTo(W, y*cell); ctx.stroke(); }
-    ctx.strokeStyle = "rgba(255,255,255,.05)";
-    for (let x = 1; x < cols; x++) { ctx.beginPath(); ctx.moveTo(x*cell + 1, 0); ctx.lineTo(x*cell + 1, H); ctx.stroke(); }
-    // top cuff — the folded-over bag rim the handles attach to
-    const cuffH = cell * 1.3;
-    const cg = ctx.createLinearGradient(0, 0, 0, cuffH);
-    cg.addColorStop(0, "#357C23"); cg.addColorStop(1, "#3E8B2C");
-    ctx.fillStyle = cg; ctx.fillRect(0, 0, W, cuffH);
-    ctx.strokeStyle = "rgba(255,255,255,.16)"; ctx.lineWidth = Math.max(1, cell * 0.03);
-    ctx.beginPath(); ctx.moveTo(0, cuffH); ctx.lineTo(W, cuffH); ctx.stroke();
-    ctx.strokeStyle = "rgba(0,0,0,.16)";
-    ctx.beginPath(); ctx.moveTo(0, cuffH + ctx.lineWidth); ctx.lineTo(W, cuffH + ctx.lineWidth); ctx.stroke();
-    // folded paper corners at the top
-    const f = cell * 1.05;
-    ctx.fillStyle = "rgba(0,0,0,.14)";
-    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(f, 0); ctx.lineTo(0, f); ctx.closePath(); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(W, 0); ctx.lineTo(W - f, 0); ctx.lineTo(W, f); ctx.closePath(); ctx.fill();
-    // soft sheen across the top
-    const sh = ctx.createLinearGradient(0, 0, 0, H * 0.18);
-    sh.addColorStop(0, "rgba(255,255,255,.09)"); sh.addColorStop(1, "rgba(255,255,255,0)");
-    ctx.fillStyle = sh; ctx.fillRect(0, 0, W, H * 0.18);
-    // stitched seam around the bag edge
-    ctx.strokeStyle = "rgba(0,0,0,.22)"; ctx.lineWidth = Math.max(1.5, cell * 0.05);
-    ctx.strokeRect(ctx.lineWidth / 2, ctx.lineWidth / 2, W - ctx.lineWidth, H - ctx.lineWidth);
+    const quad = (pts, col) => { ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(pts[0], pts[1]);
+      for (let i = 2; i < pts.length; i += 2) ctx.lineTo(pts[i], pts[i+1]); ctx.closePath(); ctx.fill(); };
+    // 1) front face base
+    ctx.fillStyle = "#3C9A2C"; ctx.fillRect(0, 0, W, H);
+    // 2) printed grid (edges get covered by the bevels below -> reads as front-face only)
+    ctx.lineWidth = 1;
+    for (let x = 1; x < cols; x++) {
+      ctx.strokeStyle = "rgba(0,0,0,.10)"; ctx.beginPath(); ctx.moveTo(x*cell, 0); ctx.lineTo(x*cell, H); ctx.stroke();
+      ctx.strokeStyle = "rgba(255,255,255,.05)"; ctx.beginPath(); ctx.moveTo(x*cell + 1, 0); ctx.lineTo(x*cell + 1, H); ctx.stroke();
+    }
+    for (let y = 1; y < rows; y++) { ctx.strokeStyle = "rgba(0,0,0,.10)"; ctx.beginPath(); ctx.moveTo(0, y*cell); ctx.lineTo(W, y*cell); ctx.stroke(); }
+    // 3) beveled 3D edges (trapezoids: light top, dark bottom, lit-left, shaded-right)
+    const b = cell * 0.55;
+    quad([0,0, W,0, W-b,b, b,b], "#5AB849");          // top  — lightest
+    quad([0,H, W,H, W-b,H-b, b,H-b], "#214F14");      // bottom — darkest
+    quad([0,0, b,b, b,H-b, 0,H], "#48A838");          // left — lit
+    quad([W,0, W-b,b, W-b,H-b, W,H], "#2B7A1C");      // right — shaded
+    ctx.strokeStyle = "rgba(255,255,255,.12)"; ctx.lineWidth = Math.max(1, cell*0.03);
+    ctx.strokeRect(b, b, W - 2*b, H - 2*b);            // inner face highlight edge
+    // 4) folded paper corner flaps at the top
+    const f = cell * 1.2;
+    quad([0,0, f,0, 0,f], "#2C6E1D"); quad([W,0, W-f,0, W,f], "#2C6E1D");
+    ctx.strokeStyle = "rgba(0,0,0,.28)"; ctx.lineWidth = Math.max(1, cell*0.03);
+    ctx.beginPath(); ctx.moveTo(f, 0); ctx.lineTo(0, f); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(W - f, 0); ctx.lineTo(W, f); ctx.stroke();
+    // 5) top sheen
+    const sh = ctx.createLinearGradient(0, 0, 0, H * 0.16);
+    sh.addColorStop(0, "rgba(255,255,255,.10)"); sh.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = sh; ctx.fillRect(0, 0, W, H * 0.16);
     drawHandles(ctx, W, cell);
   }
 
