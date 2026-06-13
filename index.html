@@ -186,7 +186,7 @@
   #howOv .htHint b { color: var(--green); opacity: 1; }
   #howOv .htSteps { list-style: none; margin: 2px 0 0; padding: 0; max-width: 360px; display: flex; flex-direction: column; gap: 13px; text-align: left; }
   #howOv .htSteps li { display: flex; gap: 11px; align-items: flex-start; font-size: 14px; font-weight: 800; line-height: 1.42; color: #000; }
-  #howOv .htSteps .num { flex: 0 0 26px; width: 26px; height: 26px; border-radius: 50%; background: #fff; color: #000; font-size: 13px; font-weight: 900; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 3px rgba(0,0,0,.12); }
+  #howOv .htSteps .num { flex: 0 0 18px; color: #000; font-size: 15px; font-weight: 900; line-height: 1.42; }
   #howOv .htSteps b { color: #000; }
   #howOv .htActions { display: flex; gap: 12px; align-items: center; margin-top: 2px; }
   #howClose {
@@ -246,9 +246,9 @@
       <div id="demoCap">Drop food into the bag</div>
     </div>
     <ol class="htSteps">
-      <li><span class="num">1</span><span>Stack the perfect <b>Uber Eats</b> delivery bag to earn points! The more items you stack, the more points you earn!</span></li>
-      <li><span class="num">2</span><span>Slide &amp; rotate each item, then drop it. Pack <b>tight with no gaps</b> — the fuller the bag, the more points.</span></li>
-      <li><span class="num">3</span><span>Fill it up = more points!</span></li>
+      <li><span class="num">1.</span><span>Stack the perfect <b>Uber Eats</b> delivery bag to earn points! The more items you stack, the more points you earn!</span></li>
+      <li><span class="num">2.</span><span>Slide &amp; rotate each item, then drop it. Pack <b>tight with no gaps</b> — the fuller the bag, the more points.</span></li>
+      <li><span class="num">3.</span><span>Fill it up = more points!</span></li>
     </ol>
     <div class="htActions">
       <button class="cta" id="howPlay" style="margin-top:0">Play ▶</button>
@@ -339,7 +339,7 @@
       const img = await loadImage(SPRITE_SRC[key]);
       SPRITES[key] = { rots: makeRotations(img) };
     }
-    try { bagImg = await loadImage("assets/bagfield.png?v=2"); } catch (e) { bagImg = null; }
+    try { bagImg = await loadImage("assets/bagfield.png?v=3"); } catch (e) { bagImg = null; }
   }
 
   function rotateMatrix(m) { // 90° clockwise
@@ -683,7 +683,19 @@
   }
   function drawBagField(ctx, W, H, cell, cols, rows) {
     ctx.clearRect(0, 0, W, H);
-    if (bagImg) { ctx.drawImage(bagImg, 0, 0, W, H); return; }   // real Uber-bag art (uber bag tetris 2)
+    if (bagImg) {
+      ctx.drawImage(bagImg, 0, 0, W, H);   // real Uber-bag art (uber bag tetris 2)
+      // grid lines aligned to the gameplay cells so the bag grid matches where pieces snap
+      ctx.save();
+      ctx.lineWidth = Math.max(1, cell * 0.05);
+      ctx.strokeStyle = "rgba(0,0,0,.12)";
+      ctx.beginPath();
+      for (let x = 1; x < cols; x++) { ctx.moveTo(x * cell, 0); ctx.lineTo(x * cell, H); }
+      for (let y = 1; y < rows; y++) { ctx.moveTo(0, y * cell); ctx.lineTo(W, y * cell); }
+      ctx.stroke();
+      ctx.restore();
+      return;
+    }
     const quad = (pts, col) => { ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(pts[0], pts[1]);
       for (let i = 2; i < pts.length; i += 2) ctx.lineTo(pts[i], pts[i+1]); ctx.closePath(); ctx.fill(); };
     // 1) front face base
