@@ -104,7 +104,7 @@
     position: absolute; inset: 0; z-index: 30;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     gap: 16px; text-align: center; padding: 28px;
-    background: #06C167; color: #000;
+    background: #4E9D69; color: #000;
   }
   .overlay.hidden { display: none; }
   .overlay .riderImg { position: absolute; left: 0; bottom: 0; width: min(16vw, 90px); height: auto; pointer-events: none; z-index: 1; filter: drop-shadow(0 5px 12px rgba(0,0,0,.55)); }
@@ -112,13 +112,13 @@
   .overlay h1 .e { color: var(--green); }
   .overlay p { font-size: 14px; opacity: .8; line-height: 1.55; max-width: 320px; }
   .overlay .cta {
-    margin-top: 6px; background: #000; color: #fff; border: none;
-    border-radius: 12px; padding: 15px 40px; font-size: 18px; font-weight: 900; cursor: pointer;
-    box-shadow: 0 8px 22px rgba(0,0,0,.32);
+    margin-top: 6px; background: linear-gradient(165deg, #66BE82 0%, #3F8C58 100%); color: #000; border: 1px solid rgba(255,255,255,.28);
+    border-radius: 16px; padding: 15px 40px; font-size: 18px; font-weight: 900; cursor: pointer;
+    box-shadow: 0 10px 22px rgba(0,0,0,.26);
   }
   .overlay .cta:disabled { opacity: .5; cursor: default; box-shadow: none; }
   .overlay .cta:active:not(:disabled) { transform: scale(.97); }
-  .overlay .cta.ghost { background: transparent; color: #000; border: 1.5px solid rgba(0,0,0,.45); box-shadow: none; }
+  .overlay .cta.ghost { background: transparent; color: #000; border: 1.5px solid rgba(255,255,255,.5); box-shadow: none; }
   .keys { font-size: 12px; opacity: .55; line-height: 1.8; }
   .keys b { color: #fff; opacity: .9; }
   #stars { font-size: 46px; letter-spacing: 6px; }
@@ -304,7 +304,7 @@
     sub: "assets/sub.png?v=10",
     ubereats: "assets/ubereats.png?v=14",
     banana: "assets/banana.png?v=9",
-    eggs: "assets/eggs.png?v=9",
+    eggs: "assets/eggs.png?v=10",
     groceries: "assets/groceries.png?v=9",
     nana: "assets/nana.png",
     produce: "assets/produce.png?v=9",
