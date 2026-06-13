@@ -104,7 +104,7 @@
     position: absolute; inset: 0; z-index: 30;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     gap: 16px; text-align: center; padding: 28px;
-    background: rgba(0,0,0,.86); backdrop-filter: blur(4px);
+    background: #06C167; color: #000;
   }
   .overlay.hidden { display: none; }
   .overlay .riderImg { position: absolute; left: 0; bottom: 0; width: min(16vw, 90px); height: auto; pointer-events: none; z-index: 1; filter: drop-shadow(0 5px 12px rgba(0,0,0,.55)); }
@@ -112,13 +112,13 @@
   .overlay h1 .e { color: var(--green); }
   .overlay p { font-size: 14px; opacity: .8; line-height: 1.55; max-width: 320px; }
   .overlay .cta {
-    margin-top: 6px; background: var(--green); color: #000; border: none;
+    margin-top: 6px; background: #000; color: #fff; border: none;
     border-radius: 12px; padding: 15px 40px; font-size: 18px; font-weight: 900; cursor: pointer;
-    box-shadow: 0 8px 22px rgba(6,193,103,.4);
+    box-shadow: 0 8px 22px rgba(0,0,0,.32);
   }
   .overlay .cta:disabled { opacity: .5; cursor: default; box-shadow: none; }
   .overlay .cta:active:not(:disabled) { transform: scale(.97); }
-  .overlay .cta.ghost { background: transparent; color: #fff; border: 1.5px solid rgba(255,255,255,.35); box-shadow: none; }
+  .overlay .cta.ghost { background: transparent; color: #000; border: 1.5px solid rgba(0,0,0,.45); box-shadow: none; }
   .keys { font-size: 12px; opacity: .55; line-height: 1.8; }
   .keys b { color: #fff; opacity: .9; }
   #stars { font-size: 46px; letter-spacing: 6px; }
@@ -126,11 +126,11 @@
   .winrows { display: flex; gap: 26px; }
   .winrows .col .k { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; opacity: .55; font-weight: 700; }
   .winrows .col .v { font-size: 28px; font-weight: 900; }
-  .winrows .col .v.green { color: var(--green); }
+  .winrows .col .v.green { color: #000; }
   .best { font-size: 12px; opacity: .6; }
   .lb { width: 100%; max-width: 320px; }
   /* title splash (start screen) */
-  #startOv { padding: 0; background: #000; cursor: pointer; overflow: hidden; }
+  #startOv { padding: 0; background: #000; color: #fff; cursor: pointer; overflow: hidden; }
   #titleImg { width: 100%; height: 100%; object-fit: cover; display: block; }
   #startOv.ready #titleImg { animation: splashPulse 1.9s ease-in-out infinite; }
   @keyframes splashPulse { 0%,100% { filter: brightness(1); } 50% { filter: brightness(1.09); } }
@@ -185,9 +185,9 @@
   #howOv .htHint { margin: 0; font-size: 13px; opacity: .9; line-height: 1.5; max-width: 300px; }
   #howOv .htHint b { color: var(--green); opacity: 1; }
   #howOv .htSteps { list-style: none; margin: 2px 0 0; padding: 0; max-width: 360px; display: flex; flex-direction: column; gap: 13px; text-align: left; }
-  #howOv .htSteps li { display: flex; gap: 11px; align-items: flex-start; font-size: 14px; font-weight: 800; line-height: 1.42; color: #fff; }
-  #howOv .htSteps .num { flex: 0 0 26px; width: 26px; height: 26px; border-radius: 50%; background: var(--green); color: #fff; font-size: 13px; font-weight: 900; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 3px rgba(6,193,103,.18); }
-  #howOv .htSteps b { color: var(--green); }
+  #howOv .htSteps li { display: flex; gap: 11px; align-items: flex-start; font-size: 14px; font-weight: 800; line-height: 1.42; color: #000; }
+  #howOv .htSteps .num { flex: 0 0 26px; width: 26px; height: 26px; border-radius: 50%; background: #000; color: #fff; font-size: 13px; font-weight: 900; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 3px rgba(0,0,0,.14); }
+  #howOv .htSteps b { color: #000; }
   #howOv .htActions { display: flex; gap: 12px; align-items: center; margin-top: 2px; }
   #howClose {
     background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.3);
